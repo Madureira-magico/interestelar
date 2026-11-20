@@ -63,7 +63,8 @@ const hasAbly = () => !!(window.AblyPubSub || window.Ably);
 // ====================== settings ======================
 const LS = 'interestelar_player_v1';
 const Q = new URLSearchParams(location.search);
-const cfg = Object.assign({ key: '-WkBxA.FUModg:DGe6U1wyeEuOu4_3iuubjnS144Ol3ojOlTb9mmqgmv0', ch: 'interestelar', fix: '8:20', ensaio: false }, JSON.parse(localStorage.getItem(LS) || '{}'));
+const cfg = Object.assign({ key: '-WkBxA.FUModg:DGe6U1wyeEuOu4_3iuubjnS144Ol3ojOlTb9mmqgmv0', ch: 'relogio:interestelar', fix: '8:20', ensaio: false }, JSON.parse(localStorage.getItem(LS) || '{}'));
+if (!cfg.ch || cfg.ch === 'interestelar') cfg.ch = 'relogio:interestelar';   // the Ably key only allows relogio:* channels
 if (!cfg.key) cfg.key = '-WkBxA.FUModg:DGe6U1wyeEuOu4_3iuubjnS144Ol3ojOlTb9mmqgmv0';
 if (Q.get('key')) cfg.key = Q.get('key');
 if (Q.get('canal')) cfg.ch = Q.get('canal');
@@ -300,6 +301,8 @@ function connectAbly() {
   ably = makeAbly({ key: cfg.key, clientId: 'player', echoMessages: false });
   ably.connection.on(s => { ablyState = s.current; dot.style.background = s.current === 'connected' ? '#3c3' : '#c33'; updInfo(); });
   chan = ably.channels.get(cfg.ch);
+  try { chan.on(s => { if (s.current === 'failed') { ablyState = 'canal recusado'; dot.style.background = '#c33'; updInfo(); } }); } catch (e) {}
+  try { Promise.resolve(chan.presence.enter({ v: 1 })).catch(() => {}); } catch (e) {}   // the sender app sees "Telão conectado"
   chan.subscribe('hora', msg => {
     const d = msg.data, t = parseTime(d && typeof d === 'object' && 'hora' in d ? d.hora : d);
     const id = d && typeof d === 'object' ? d.id : null;
@@ -319,7 +322,7 @@ function openCfg() {
 $('bClose').onclick = () => $('cfg').style.display = 'none';
 $('bSave').onclick = () => {
   const keyCh = $('cKey').value.trim() !== cfg.key || $('cCh').value.trim() !== cfg.ch;
-  cfg.key = $('cKey').value.trim(); cfg.ch = $('cCh').value.trim() || 'interestelar';
+  cfg.key = $('cKey').value.trim(); cfg.ch = $('cCh').value.trim() || 'relogio:interestelar';
   const nf = parseTime($('cFix').value); if (nf) cfg.fix = fmt(nf);
   cfg.ensaio = $('cEns').checked; document.body.classList.toggle('ensaio', cfg.ensaio);
   saveCfg(); $('cfg').style.display = 'none';

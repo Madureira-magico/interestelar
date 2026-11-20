@@ -2,72 +2,191 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-<title>Teste de envio</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Telão">
+<meta name="theme-color" content="#26282d">
+<title>Telão</title>
 <style>
-  body { margin: 0; background: #0d0d10; color: #eee; font: 18px system-ui, sans-serif; }
-  .box { max-width: 460px; margin: 0 auto; padding: 24px 18px; }
-  h2 { font-weight: 600; margin: 0 0 16px; font-size: 20px; }
-  label { display: block; color: #999; font-size: 14px; margin: 14px 0 6px; }
-  input { width: 100%; box-sizing: border-box; padding: 12px; font-size: 18px; background: #1c1c20; color: #fff; border: 1px solid #333; border-radius: 10px; }
-  #hora { font-size: 44px; text-align: center; letter-spacing: 2px; padding: 14px; }
-  button { width: 100%; margin-top: 16px; padding: 16px; font-size: 20px; border: 0; border-radius: 12px; background: #2d6cdf; color: #fff; }
-  #st { margin-top: 18px; padding: 12px; border-radius: 10px; background: #18181b; min-height: 48px; white-space: pre-wrap; font-size: 16px; }
-  .ok { color: #6d6; } .bad { color: #e66; } .wait { color: #db6; }
-  details { margin-top: 22px; color: #aaa; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+  html, body { margin: 0; height: 100%; background: #26282d; color: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; touch-action: manipulation; overflow: hidden; }
+  button { font-family: inherit; }
+  .app { max-width: 420px; margin: 0 auto; height: 100%; display: flex; flex-direction: column;
+    padding: calc(env(safe-area-inset-top) + 14px) 20px calc(env(safe-area-inset-bottom) + 12px); }
+  .top { display: flex; justify-content: center; padding-bottom: 14px; flex-shrink: 0; }
+  .pill { display: flex; align-items: center; gap: 8px; border-radius: 20px; height: 38px; padding: 0 16px; font-size: 15px; font-weight: 500; line-height: 1;
+    border: 1.5px solid #A32D2D; color: #E24B4A; cursor: pointer; }
+  .pill svg { width: 20px; height: 20px; display: block; }
+  .pill.green  { border-color: #1D9E75; color: #5DCAA5; }
+  .pill.yellow { border-color: #BA7517; color: #EF9F27; }
+  .visor { border: 1.5px solid #5DCAA5; border-radius: 20px; height: clamp(72px, 13vh, 104px); display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    font-size: 50px; font-weight: 500; margin-bottom: 14px; letter-spacing: 2px; transition: border-color .2s, background .2s; font-variant-numeric: tabular-nums; color: #5DCAA5; }
+  .visor .dim { color: #444441; }
+  .colon { color: #fff; margin: 0 4px; position: relative; top: -4px; }
+  .visor.ok  { border-color: #97C459; background: #1d3a2c; }
+  .visor.bad { border-color: #E24B4A; background: #3a1f1f; }
+  .keys { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(4, 1fr); gap: 11px; flex: 1 1 auto; min-height: 220px; max-height: 440px; }
+  .k { border: 1.5px solid #5DCAA5; border-radius: 18px; background: #33363c; color: #fff; font-size: 30px; font-weight: 500;
+    display: flex; align-items: center; justify-content: center; padding: 0; min-height: 44px; }
+  .k:active { background: #444850; }
+  .k svg { width: 30px; height: 30px; }
+  .send { background: #1D9E75; }
+  .send:active { background: #0F6E56; }
+  .dg { background: #1c1d21; border-radius: 18px; text-align: center; margin-top: 14px; flex-shrink: 0; height: clamp(84px, 14vh, 118px);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; color: #444441; }
+  .dg b { font-size: clamp(48px, 15vw, 66px); font-weight: 500; font-variant-numeric: tabular-nums; line-height: 1.05; }
+  .dg span { font-size: 13px; color: #888780; margin-top: 2px; }
+  .dg.on b { color: #fff; }
+  .dg.got b { color: #EF9F27; }
+  .dg.bad b { color: #E24B4A; }
+  .ver { text-align: right; font-size: 12px; color: #888780; padding-top: 4px; flex-shrink: 0; }
+  .turn { position: fixed; inset: 0; background: #26282d; z-index: 50; display: none; align-items: center; justify-content: center; color: #D3D1C7; font-size: 18px; }
+  @media (orientation: landscape) and (max-height: 520px) { .turn { display: flex; } }
 </style>
 </head>
-<body><div class="box">
-  <h2>Teste de envio da hora</h2>
-  <input id="hora" inputmode="numeric" placeholder="8:13" autocomplete="off">
-  <button id="go">Enviar</button>
-  <div id="st">Conectando…</div>
-  <details id="det"><summary>Chave e canal</summary>
-    <label>Chave do Ably</label><input id="key" type="password" autocomplete="off">
-    <label>Canal</label><input id="ch" autocomplete="off">
-    <button id="save" style="background:#333">Salvar</button>
-  </details>
+<body>
+<div class="app">
+  <div class="top">
+    <div class="pill" id="pill">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 19v-3M9.5 19v-6M14 19v-9M18.5 19V7"/></svg>
+      <span id="pillTxt">Sem sinal</span>
+    </div>
+  </div>
+  <div id="visor" class="visor"></div>
+  <div class="keys">
+    <button class="k" data-n="1">1</button><button class="k" data-n="2">2</button><button class="k" data-n="3">3</button>
+    <button class="k" data-n="4">4</button><button class="k" data-n="5">5</button><button class="k" data-n="6">6</button>
+    <button class="k" data-n="7">7</button><button class="k" data-n="8">8</button><button class="k" data-n="9">9</button>
+    <button class="k" id="clr" aria-label="Apagar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+    <button class="k" data-n="0">0</button>
+    <button class="k send" id="sendBtn" aria-label="Enviar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14L21 3"/><path d="M21 3l-6.5 18a.55 .55 0 0 1-1 0L10 14l-7-3.5a.55 .55 0 0 1 0-1L21 3"/></svg>
+    </button>
+  </div>
+  <div class="dg" id="dg"><b id="dgT">--:--</b><span id="dgS">no telão</span></div>
+  <div class="ver">v1.0</div>
 </div>
-<script src="ably.min.js"></script>
+<div class="turn">Vire o celular de pé</div>
+
 <script>
 'use strict';
-const makeAbly = o => window.AblyPubSub ? AblyPubSub.createClient(o) : new Ably.Realtime(o);
-const hasAbly = () => !!(window.AblyPubSub || window.Ably);
-const LS = 'interestelar_envio_v1', $ = id => document.getElementById(id);
-const Q = new URLSearchParams(location.search);
-const cfg = Object.assign({ key: '-WkBxA.FUModg:DGe6U1wyeEuOu4_3iuubjnS144Ol3ojOlTb9mmqgmv0', ch: 'interestelar' }, JSON.parse(localStorage.getItem(LS) || '{}'));
-if (!cfg.key) cfg.key = '-WkBxA.FUModg:DGe6U1wyeEuOu4_3iuubjnS144Ol3ojOlTb9mmqgmv0';
-if (Q.get('key')) cfg.key = Q.get('key'); if (Q.get('canal')) cfg.ch = Q.get('canal');
-localStorage.setItem(LS, JSON.stringify(cfg));
-$('key').value = cfg.key; $('ch').value = cfg.ch;
-let ably = null, chan = null, lastId = null, sentAt = 0;
-function st(t, cls) { $('st').textContent = t; $('st').className = cls || ''; }
-function connect() {
-  try { if (ably) ably.close(); } catch (e) {}
-  if (!hasAbly()) { st('Sem internet para o Ably.', 'bad'); return; }
-  if (!cfg.key) { st('Coloque a chave do Ably em "Chave e canal".', 'bad'); $('det').open = true; return; }
-  ably = makeAbly({ key: cfg.key, clientId: 'teste-envio', echoMessages: false });
-  ably.connection.on(s => { if (s.current === 'connected') st('Conectado. Digite a hora e envie.', 'ok'); else if (s.current !== 'connecting') st('Ably: ' + s.current, 'bad'); });
-  chan = ably.channels.get(cfg.ch);
-  chan.subscribe('recebido', m => {
-    const d = m.data || {}; if (lastId && d.id && d.id !== lastId) return;
-    const ms = sentAt ? ' (' + (Date.now() - sentAt) + ' ms)' : '';
-    const txt = { recebida: 'Player recebeu ' + d.hora + ms + '. Preparando…', pronto: 'Pronto no player: ' + d.pronta + ms,
-      ignorada: 'Chegou tarde: o close já começou. Fica ' + d.pronta, tarde: 'Ficou pronta tarde demais. Vai aparecer ' + d.pronta }[d.status] || JSON.stringify(d);
-    st(txt, d.status === 'pronto' ? 'ok' : d.status === 'recebida' ? 'wait' : 'bad');
-    if (navigator.vibrate) navigator.vibrate(d.status === 'pronto' ? [60, 80, 60] : 30);
+const ABLY_KEY = '-WkBxA.FUModg:DGe6U1wyeEuOu4_3iuubjnS144Ol3ojOlTb9mmqgmv0';
+const ABLY_JS = ['ably.min.js', 'https://cdn.jsdelivr.net/npm/@ably/pubsub-device@3/dist/cdn/ably.min.js'];
+const CANAL = new URLSearchParams(location.search).get('canal') || 'relogio:interestelar';   // the Ably key only allows relogio:* channels
+const $ = id => document.getElementById(id);
+const pad = n => String(n).padStart(2, '0');
+const vib = p => { try { navigator.vibrate && navigator.vibrate(p); } catch (e) {} };
+
+// ===== visor e teclado (não deixa digitar hora errada) =====
+let digits = '';
+function renderVisor() {
+  const show = i => i < digits.length ? digits[i] : '<span class="dim">0</span>';
+  $('visor').innerHTML = show(0) + show(1) + '<span class="colon">:</span>' + show(2) + show(3);
+}
+function flash(cls) {
+  const v = $('visor'); v.classList.remove('ok', 'bad'); void v.offsetWidth; v.classList.add(cls);
+  setTimeout(() => v.classList.remove(cls), 900);
+}
+document.querySelectorAll('.k[data-n]').forEach(k => k.addEventListener('click', () => {
+  if (digits.length >= 4) return;
+  digits += k.dataset.n;
+  if (digits.length === 2 && +digits > 23) { digits = ''; flash('bad'); }
+  else if (digits.length === 4 && +digits.slice(2) > 59) { digits = digits.slice(0, 2); flash('bad'); }
+  renderVisor();
+}));
+$('clr').addEventListener('click', () => { digits = ''; renderVisor(); });
+
+// ===== caixa de baixo: hora no telão =====
+function box(cls, t, s) { $('dg').className = 'dg ' + (cls || ''); $('dgT').textContent = t; $('dgS').textContent = s; }
+
+// ===== aviso de cima =====
+let online = false, telao = false;
+function showPill() {
+  const p = $('pill');
+  if (online && telao) { p.className = 'pill green'; $('pillTxt').textContent = 'Telão conectado'; }
+  else if (online) { p.className = 'pill yellow'; $('pillTxt').textContent = 'Telão desligado'; }
+  else { p.className = 'pill'; $('pillTxt').textContent = 'Sem sinal'; }
+}
+
+// ===== Ably =====
+let ably = null, ch = null, pending = null;
+function loadScript(src) {
+  return new Promise(res => {
+    const s = document.createElement('script'); s.src = src; s.async = true;
+    s.onload = () => res(!!window.AblyPubSub);
+    s.onerror = () => { s.remove(); res(false); };
+    document.head.appendChild(s);
   });
 }
-$('go').onclick = () => {
-  const h = $('hora').value.trim(); if (!h) return;
-  if (!chan) { st('Ainda não conectado.', 'bad'); return; }
-  lastId = Math.random().toString(36).slice(2, 8); sentAt = Date.now();
-  st('Enviando ' + h + '…', 'wait');
-  chan.publish('hora', { hora: h, id: lastId, de: 'teste' }).catch(e => st('Erro ao enviar: ' + e.message, 'bad'));
-};
-$('hora').addEventListener('keydown', e => { if (e.key === 'Enter') $('go').onclick(); });
-$('save').onclick = () => { cfg.key = $('key').value.trim(); cfg.ch = $('ch').value.trim() || 'interestelar'; localStorage.setItem(LS, JSON.stringify(cfg)); $('det').open = false; connect(); };
-connect();
+async function loadAbly() {
+  if (window.AblyPubSub) return true;
+  for (const src of ABLY_JS) if (await loadScript(src)) return true;
+  return false;
+}
+async function refreshPresence() {
+  if (!ch) return;
+  try { const ms = await ch.presence.get(); telao = ms.some(m => m.clientId === 'player'); }
+  catch (e) {}
+  showPill();
+}
+async function start() {
+  if (!(await loadAbly())) { setTimeout(start, 8000); return; }
+  try {
+    let meuId = ''; try { meuId = localStorage.getItem('telao_assistId') || ''; } catch (e) {}
+    if (!meuId) { meuId = 'assist-' + Math.random().toString(36).slice(2, 10); try { localStorage.setItem('telao_assistId', meuId); } catch (e) {} }
+    ably = AblyPubSub.createClient({ key: ABLY_KEY, clientId: meuId, echoMessages: false });
+    ch = ably.channels.get(CANAL);
+    ably.connection.on(st => { online = st.current === 'connected'; showPill(); if (online) refreshPresence(); });
+    ch.presence.subscribe(m => {
+      if (m.clientId !== 'player') return;
+      telao = !(m.action === 'leave' || m.action === 'absent'); showPill();
+    });
+    Promise.resolve(ch.subscribe('recebido', msg => gotAck(msg.data || {}))).catch(() => {});
+  } catch (e) { setTimeout(start, 8000); }
+}
+
+// ===== envio =====
+$('sendBtn').addEventListener('click', async () => {
+  if (digits.length < 4) { flash('bad'); return; }
+  const h = +digits.slice(0, 2), m = +digits.slice(2);
+  if (h > 23 || m > 59) { flash('bad'); return; }
+  if (!ch || !online) { flash('bad'); return; }
+  const id = Math.random().toString(36).slice(2, 10), hora = (h % 12 || 12) + ':' + pad(m);
+  if (pending) clearTimeout(pending.timer);
+  pending = { id, hora };
+  box('on', hora, 'enviando…');
+  try { await ch.publish('hora', { hora, id, de: 'assistente' }); }
+  catch (e) { if (pending && pending.id === id) { pending = null; flash('bad'); box('bad', hora, 'não enviou'); } return; }
+  if (!pending || pending.id !== id) return;
+  // sem resposta do telão em 5 s
+  pending.timer = setTimeout(() => { if (pending && pending.id === id) { pending = null; flash('bad'); box('bad', hora, 'o telão não respondeu'); telao = false; showPill(); } }, 5000);
+});
+function gotAck(d) {
+  telao = true; showPill();
+  if (!pending || d.id !== pending.id) return;
+  if (d.status === 'recebida') {
+    box('on', pending.hora, 'chegou, preparando…'); clearTimeout(pending.timer);
+    const id = pending.id; pending.timer = setTimeout(() => { if (pending && pending.id === id) { pending = null; flash('bad'); box('bad', '--:--', 'o telão não confirmou'); } }, 12000);
+    return; }
+  clearTimeout(pending.timer);
+  pending = null;
+  if (d.status === 'pronto') { box('got', d.pronta, 'pronta no telão'); flash('ok'); digits = ''; renderVisor(); vib([60, 80, 60]); }
+  else { box('bad', d.pronta, 'chegou tarde: vai aparecer ' + d.pronta); flash('bad'); vib(300); }
+}
+
+renderVisor(); showPill(); start();
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState !== 'visible' || !ably) return;
+  try { ably.connect(); } catch (e) {}
+  refreshPresence();
+});
+window.addEventListener('online', () => { if (ably) try { ably.connect(); } catch (e) {} });
+$('pill').addEventListener('click', () => refreshPresence());
 </script>
 </body>
 </html>
