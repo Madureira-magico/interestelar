@@ -55,13 +55,16 @@
   Tecla E liga/desliga o modo ensaio. Tecla Home volta para a capa.</small></p>
 </div></div>
 
-<script src="https://cdn.ably.com/lib/ably.min-2.js"></script>
+<script src="ably.min.js"></script>
 <script>
 'use strict';
+const makeAbly = o => window.AblyPubSub ? AblyPubSub.createClient(o) : new Ably.Realtime(o);
+const hasAbly = () => !!(window.AblyPubSub || window.Ably);
 // ====================== settings ======================
 const LS = 'interestelar_player_v1';
 const Q = new URLSearchParams(location.search);
-const cfg = Object.assign({ key: '', ch: 'interestelar', fix: '8:20', ensaio: false }, JSON.parse(localStorage.getItem(LS) || '{}'));
+const cfg = Object.assign({ key: '-WkBxA.FUModg:DGe6U1wyeEuOu4_3iuubjnS144Ol3ojOlTb9mmqgmv0', ch: 'interestelar', fix: '8:20', ensaio: false }, JSON.parse(localStorage.getItem(LS) || '{}'));
+if (!cfg.key) cfg.key = '-WkBxA.FUModg:DGe6U1wyeEuOu4_3iuubjnS144Ol3ojOlTb9mmqgmv0';
 if (Q.get('key')) cfg.key = Q.get('key');
 if (Q.get('canal')) cfg.ch = Q.get('canal');
 if (Q.get('fixa')) cfg.fix = Q.get('fixa');
@@ -293,8 +296,8 @@ function ack(status) {
 function connectAbly() {
   try { if (ably) ably.close(); } catch (e) {}
   ably = chan = null; ablyState = 'desligado'; updInfo();
-  if (!cfg.key || typeof Ably === 'undefined') { dot.style.background = '#555'; return; }
-  ably = new Ably.Realtime({ key: cfg.key, clientId: 'player', echoMessages: false });
+  if (!cfg.key || !hasAbly()) { dot.style.background = '#555'; return; }
+  ably = makeAbly({ key: cfg.key, clientId: 'player', echoMessages: false });
   ably.connection.on(s => { ablyState = s.current; dot.style.background = s.current === 'connected' ? '#3c3' : '#c33'; updInfo(); });
   chan = ably.channels.get(cfg.ch);
   chan.subscribe('hora', msg => {

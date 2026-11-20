@@ -28,12 +28,15 @@
     <button id="save" style="background:#333">Salvar</button>
   </details>
 </div>
-<script src="https://cdn.ably.com/lib/ably.min-2.js"></script>
+<script src="ably.min.js"></script>
 <script>
 'use strict';
+const makeAbly = o => window.AblyPubSub ? AblyPubSub.createClient(o) : new Ably.Realtime(o);
+const hasAbly = () => !!(window.AblyPubSub || window.Ably);
 const LS = 'interestelar_envio_v1', $ = id => document.getElementById(id);
 const Q = new URLSearchParams(location.search);
-const cfg = Object.assign({ key: '', ch: 'interestelar' }, JSON.parse(localStorage.getItem(LS) || '{}'));
+const cfg = Object.assign({ key: '-WkBxA.FUModg:DGe6U1wyeEuOu4_3iuubjnS144Ol3ojOlTb9mmqgmv0', ch: 'interestelar' }, JSON.parse(localStorage.getItem(LS) || '{}'));
+if (!cfg.key) cfg.key = '-WkBxA.FUModg:DGe6U1wyeEuOu4_3iuubjnS144Ol3ojOlTb9mmqgmv0';
 if (Q.get('key')) cfg.key = Q.get('key'); if (Q.get('canal')) cfg.ch = Q.get('canal');
 localStorage.setItem(LS, JSON.stringify(cfg));
 $('key').value = cfg.key; $('ch').value = cfg.ch;
@@ -41,9 +44,9 @@ let ably = null, chan = null, lastId = null, sentAt = 0;
 function st(t, cls) { $('st').textContent = t; $('st').className = cls || ''; }
 function connect() {
   try { if (ably) ably.close(); } catch (e) {}
-  if (typeof Ably === 'undefined') { st('Sem internet para o Ably.', 'bad'); return; }
+  if (!hasAbly()) { st('Sem internet para o Ably.', 'bad'); return; }
   if (!cfg.key) { st('Coloque a chave do Ably em "Chave e canal".', 'bad'); $('det').open = true; return; }
-  ably = new Ably.Realtime({ key: cfg.key, clientId: 'teste-envio', echoMessages: false });
+  ably = makeAbly({ key: cfg.key, clientId: 'teste-envio', echoMessages: false });
   ably.connection.on(s => { if (s.current === 'connected') st('Conectado. Digite a hora e envie.', 'ok'); else if (s.current !== 'connecting') st('Ably: ' + s.current, 'bad'); });
   chan = ably.channels.get(cfg.ch);
   chan.subscribe('recebido', m => {
