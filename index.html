@@ -308,6 +308,7 @@ function fallback() { GLok = false; cv.style.display = 'none'; }
 let started = false;
 async function start() {
   if (started) return; started = true;
+  if (PPT_MODE) document.title = 'Interestelar';   // new showing: clear the "finished" signal for PowerPoint
   document.body.classList.add('playing');
   cover.style.display = 'none';
   v.currentTime = 0;
