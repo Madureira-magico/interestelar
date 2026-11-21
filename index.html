@@ -8,12 +8,28 @@
   html, body { margin: 0; height: 100%; background: #000; overflow: hidden; -webkit-user-select: none; user-select: none; cursor: default; }
   #cover, #stage { position: fixed; inset: 0; }
   #cover { z-index: 3; cursor: pointer; }
-  #cover .bg { position: absolute; inset: -40px; background: url(assets/capa.png) center / cover no-repeat; filter: blur(30px) brightness(.35); }
-  #cover img { position: absolute; inset: 0; margin: auto; max-width: 100%; max-height: 100%; height: 100%; object-fit: contain; }
+  #cover .bg { position: absolute; inset: -40px; background: url(assets/capa.jpg) center / cover no-repeat; filter: blur(30px) brightness(.35); }
+  #cover img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+  @media (min-aspect-ratio: 3/2) { #cover img { object-fit: cover; object-position: 50% 70%; } }
   #stage { z-index: 1; background: #000; }
   #stage video, #stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
   #stage canvas { z-index: 2; }
   body.playing { cursor: none; }
+  body.playing.showctl { cursor: default; }
+  body.fill #stage video, body.fill #stage canvas { object-fit: cover; }
+  #ctl { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; padding: 14px 22px 16px; background: rgba(0,0,0,.6); color: #F1EFE8;
+    font: 15px system-ui, sans-serif; opacity: 0; pointer-events: none; transition: opacity .3s; }
+  body.playing.showctl #ctl { opacity: 1; pointer-events: auto; }
+  #bar { position: relative; height: 22px; cursor: pointer; touch-action: none; }
+  #bar .tr { position: absolute; left: 0; right: 0; top: 9px; height: 4px; background: #555; border-radius: 2px; }
+  #bar .fi { position: absolute; left: 0; top: 9px; height: 4px; background: #F1EFE8; border-radius: 2px; width: 0; }
+  #bar .mk { position: absolute; top: 5px; width: 3px; height: 12px; background: #EF9F27; border-radius: 1px; }
+  #bar .kn { position: absolute; top: 4px; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%; background: #fff; left: 0; }
+  #ctl .row { display: flex; align-items: center; gap: 22px; margin-top: 6px; }
+  #ctl button { background: none; border: 0; color: inherit; padding: 6px; cursor: pointer; display: flex; align-items: center; }
+  #ctl svg { width: 30px; height: 30px; }
+  #ctl .tm { color: #B4B2A9; font-size: 14px; font-variant-numeric: tabular-nums; }
+  #ctl .sp { flex: 1; }
   #dot { position: fixed; right: 6px; bottom: 6px; width: 6px; height: 6px; border-radius: 50%; z-index: 9; opacity: .35; display: none; }
   #info { position: fixed; left: 10px; top: 10px; z-index: 9; color: #9f9; font: 14px/1.4 monospace; background: rgba(0,0,0,.6); padding: 6px 10px; border-radius: 6px; display: none; white-space: pre; }
   body.ensaio #info, body.ensaio #dot { display: block; }
@@ -34,7 +50,20 @@
   <video id="v" src="trailer.mp4" preload="auto" playsinline webkit-playsinline></video>
   <canvas id="c" width="1920" height="804"></canvas>
 </div>
-<div id="cover"><div class="bg"></div><img src="assets/capa.png" alt=""></div>
+<div id="ctl">
+  <div id="bar"><div class="tr"></div><div class="fi" id="fi"></div><div class="mk" id="mk"></div><div class="kn" id="kn"></div></div>
+  <div class="row">
+    <button id="bBack" title="Voltar 10 s"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.3-5.7"/><path d="M4 4v4h4"/><text x="12" y="15.5" font-size="7.5" text-anchor="middle" fill="currentColor" stroke="none" font-family="system-ui">10</text></svg></button>
+    <button id="bPlay" title="Pausa"><svg id="icPause" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg><svg id="icPlay" viewBox="0 0 24 24" fill="currentColor" style="display:none"><path d="M7 4.5v15l13-7.5z"/></svg></button>
+    <button id="bFwd" title="Avançar 10 s"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v4h-4"/><text x="12" y="15.5" font-size="7.5" text-anchor="middle" fill="currentColor" stroke="none" font-family="system-ui">10</text></svg></button>
+    <span class="tm" id="tm">0:00 / 0:00</span>
+    <span class="sp"></span>
+    <button id="bFill" title="Preencher (tirar as faixas pretas)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="12" rx="1.5"/><path d="M8 10l-2 2 2 2M16 10l2 2-2 2"/></svg></button>
+    <button id="bFull" title="Tela cheia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+    <button id="bHome" title="Voltar para a capa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  </div>
+</div>
+<div id="cover"><div class="bg"></div><img src="assets/capa.jpg" alt=""></div>
 <div id="dot"></div>
 <div id="info"></div>
 
@@ -47,6 +76,8 @@
   <label>Hora fixada (usada se nenhuma hora chegar)</label>
   <input id="cFix" type="text" inputmode="numeric" placeholder="8:20">
   <div class="row"><input id="cEns" type="checkbox" style="width:22px;height:22px"><span>Modo ensaio (mostra a hora recebida no canto)</span></div>
+  <div class="row"><input id="cCtl" type="checkbox" style="width:22px;height:22px"><span>Mostrar controles do filme (barra que aparece ao mexer o mouse ou tocar)</span></div>
+  <div class="row"><input id="cFill" type="checkbox" style="width:22px;height:22px"><span>Preencher a tela (tira as faixas pretas, corta um pouco dos lados)</span></div>
   <label>Testar aqui: digite uma hora e aperte Usar</label>
   <div class="row" style="margin-top:0"><input id="cTest" type="text" inputmode="numeric" placeholder="10:45"><button id="bTest" class="sec">Usar</button></div>
   <div class="row"><button id="bSave">Salvar e fechar</button><button id="bClose" class="sec">Fechar</button></div>
@@ -63,14 +94,15 @@ const hasAbly = () => !!(window.AblyPubSub || window.Ably);
 // ====================== settings ======================
 const LS = 'interestelar_player_v1';
 const Q = new URLSearchParams(location.search);
-const cfg = Object.assign({ key: '-WkBxA.FUModg:DGe6U1wyeEuOu4_3iuubjnS144Ol3ojOlTb9mmqgmv0', ch: 'relogio:interestelar', fix: '8:20', ensaio: false }, JSON.parse(localStorage.getItem(LS) || '{}'));
+const cfg = Object.assign({ controles: true, preencher: false, key: '-WkBxA.FUModg:DGe6U1wyeEuOu4_3iuubjnS144Ol3ojOlTb9mmqgmv0', ch: 'relogio:interestelar', fix: '8:20', ensaio: false }, JSON.parse(localStorage.getItem(LS) || '{}'));
 if (!cfg.ch || cfg.ch === 'interestelar') cfg.ch = 'relogio:interestelar';   // the Ably key only allows relogio:* channels
 if (!cfg.key) cfg.key = '-WkBxA.FUModg:DGe6U1wyeEuOu4_3iuubjnS144Ol3ojOlTb9mmqgmv0';
 if (Q.get('key')) cfg.key = Q.get('key');
 if (Q.get('canal')) cfg.ch = Q.get('canal');
 if (Q.get('fixa')) cfg.fix = Q.get('fixa');
 if (Q.has('ensaio')) cfg.ensaio = Q.get('ensaio') !== '0';
-const saveCfg = () => localStorage.setItem(LS, JSON.stringify(cfg));
+const saveCfg = () => localStorage.setItem(LS, JSON.stringify(Object.assign({}, cfg, { preencher: false })));
+cfg.preencher = false;   // fill-screen is never the default: only when turned on in this session
 saveCfg();
 document.body.classList.toggle('ensaio', !!cfg.ensaio);
 
@@ -315,6 +347,7 @@ function connectAbly() {
 // ====================== settings screen ======================
 const $ = id => document.getElementById(id);
 function openCfg() {
+  $('cCtl').checked = !!cfg.controles; $('cFill').checked = !!cfg.preencher;
   $('cKey').value = cfg.key; $('cCh').value = cfg.ch; $('cFix').value = cfg.fix; $('cEns').checked = !!cfg.ensaio;
   $('cSt').textContent = 'Ably: ' + ablyState + '\nHora recebida: ' + fmt(S.wanted) + '   pronta: ' + fmt(S.ready);
   $('cfg').style.display = 'block';
@@ -325,6 +358,7 @@ $('bSave').onclick = () => {
   cfg.key = $('cKey').value.trim(); cfg.ch = $('cCh').value.trim() || 'relogio:interestelar';
   const nf = parseTime($('cFix').value); if (nf) cfg.fix = fmt(nf);
   cfg.ensaio = $('cEns').checked; document.body.classList.toggle('ensaio', cfg.ensaio);
+  cfg.controles = $('cCtl').checked; cfg.preencher = $('cFill').checked; applyView(); if (!cfg.controles) hideCtl();
   saveCfg(); $('cfg').style.display = 'none';
   if (keyCh) connectAbly();
   if (nf && (!S.src || S.src === 'fixada')) setTime(nf, 'fixada');
@@ -336,6 +370,9 @@ document.addEventListener('keydown', e => {
   if (e.key === 'c' || e.key === 'C') openCfg();
   else if (e.key === 'e' || e.key === 'E') { cfg.ensaio = !cfg.ensaio; saveCfg(); document.body.classList.toggle('ensaio', cfg.ensaio); updInfo(); }
   else if ((e.key === ' ' || e.key === 'Enter' || e.key === 'PageDown' || e.key === 'ArrowRight') && !started) start();
+  else if (started && cfg.controles && e.key === ' ') { e.preventDefault(); togglePlay(); showCtl(); }
+  else if (started && cfg.controles && e.key === 'ArrowRight') { seekBy(10); showCtl(); }
+  else if (started && cfg.controles && e.key === 'ArrowLeft') { seekBy(-10); showCtl(); }
   else if (e.key === 'Home' && started) backToCover();
 });
 let taps = [];
@@ -344,6 +381,49 @@ document.addEventListener('pointerdown', e => {
   const t = performance.now(); taps = taps.filter(x => t - x < 1500); taps.push(t);
   if (taps.length >= 5) { taps = []; e.stopPropagation(); e.preventDefault(); openCfg(); }
 }, true);
+
+// ====================== film controls ======================
+const fmtT = s => { s = Math.max(0, Math.floor(s || 0)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+let ctlTimer = 0, dragging = false;
+function applyView() { document.body.classList.toggle('fill', !!cfg.preencher); }
+function showCtl() {
+  if (!cfg.controles || !started) return;
+  document.body.classList.add('showctl'); updCtl();
+  clearTimeout(ctlTimer); ctlTimer = setTimeout(() => { if (!dragging) hideCtl(); }, 3000);
+}
+function hideCtl() { clearTimeout(ctlTimer); document.body.classList.remove('showctl'); }
+function updCtl() {
+  const d = v.duration || 1, t = v.currentTime, pc = Math.min(100, t / d * 100) + '%';
+  $('fi').style.width = pc; $('kn').style.left = pc; $('tm').textContent = fmtT(t) + ' / ' + fmtT(d);
+  $('mk').style.left = (CLOSE0 / FPS / d * 100) + '%';
+  $('icPause').style.display = v.paused ? 'none' : ''; $('icPlay').style.display = v.paused ? '' : 'none';
+}
+function seekTo(t) { v.currentTime = Math.max(0, Math.min((v.duration || 0) - 0.2, t)); updCtl(); }
+function seekBy(s) { seekTo(v.currentTime + s); }
+function togglePlay() { if (v.paused) v.play().catch(() => {}); else v.pause(); updCtl(); }
+v.addEventListener('timeupdate', () => { if (document.body.classList.contains('showctl')) updCtl(); });
+v.addEventListener('play', updCtl); v.addEventListener('pause', updCtl);
+$('stage').addEventListener('pointermove', e => { if (e.pointerType === 'mouse') showCtl(); });
+$('stage').addEventListener('pointerdown', () => showCtl());
+$('stage').addEventListener('dblclick', () => { if (started) $('bFull').onclick(); });
+$('ctl').addEventListener('pointermove', () => showCtl());
+$('bBack').onclick = () => { seekBy(-10); showCtl(); };
+$('bFwd').onclick = () => { seekBy(10); showCtl(); };
+$('bPlay').onclick = () => { togglePlay(); showCtl(); };
+$('bFill').onclick = () => { cfg.preencher = !cfg.preencher; saveCfg(); applyView(); showCtl(); };
+$('bFull').onclick = () => {
+  try { if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen({ navigationUI: 'hide' }); } catch (e) {}
+  showCtl();
+};
+$('bHome').onclick = () => { hideCtl(); backToCover(); };
+const bar = $('bar');
+function barSeek(e) { const r = bar.getBoundingClientRect(); seekTo((e.clientX - r.left) / r.width * (v.duration || 0)); }
+bar.addEventListener('pointerdown', e => { dragging = true; bar.setPointerCapture(e.pointerId); barSeek(e); showCtl(); });
+bar.addEventListener('pointermove', e => { if (dragging) { barSeek(e); showCtl(); } });
+bar.addEventListener('pointerup', () => { dragging = false; showCtl(); });
+bar.addEventListener('pointercancel', () => { dragging = false; });
+document.querySelectorAll('#ctl button').forEach(b => b.addEventListener('mousedown', e => e.preventDefault()));   // keep focus off the buttons (space key)
+applyView();
 
 // ====================== boot ======================
 (async () => {
