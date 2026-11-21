@@ -61,7 +61,7 @@
     <button id="bHome" title="Voltar para a capa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
   </div>
 </div>
-<div id="cover"><img src="assets/capa.jpg?v=3" alt=""></div>
+<div id="cover"><img src="assets/capa.jpg?v=4" alt=""></div>
 <div id="dot"></div>
 <div id="info"></div>
 
@@ -88,7 +88,7 @@
 <script>
 'use strict';
 // version of all player files: bump on every release so the browser never mixes old and new files
-const VER = '3';
+const VER = '4';
 const makeAbly = o => window.AblyPubSub ? AblyPubSub.createClient(o) : new Ably.Realtime(o);
 const hasAbly = () => !!(window.AblyPubSub || window.Ably);
 // ====================== settings ======================
@@ -307,7 +307,6 @@ let started = false;
 async function start() {
   if (started) return; started = true;
   document.body.classList.add('playing');
-  try { await document.documentElement.requestFullscreen({ navigationUI: 'hide' }); } catch (e) {}
   cover.style.display = 'none';
   v.currentTime = 0;
   try { await v.play(); } catch (e) { log('play ' + e); }
@@ -316,7 +315,6 @@ function backToCover() {
   started = false; document.body.classList.remove('playing'); cover.style.display = '';
   S.shown = null; v.pause(); v.currentTime = 0;
   setTime(parseTime(cfg.fix), 'fixada');   // next showing starts again from the fixed time
-  try { if (document.fullscreenElement) document.exitFullscreen(); } catch (e) {}
 }
 cover.addEventListener('click', e => { if (e.clientX < 80 && e.clientY < 80) return; start(); });
 v.addEventListener('ended', () => setTimeout(backToCover, 600));
@@ -406,7 +404,6 @@ v.addEventListener('timeupdate', () => { if (document.body.classList.contains('s
 v.addEventListener('play', updCtl); v.addEventListener('pause', updCtl);
 $('stage').addEventListener('pointermove', e => { if (e.pointerType === 'mouse') showCtl(); });
 $('stage').addEventListener('pointerdown', () => showCtl());
-$('stage').addEventListener('dblclick', () => { if (started) $('bFull').onclick(); });
 $('ctl').addEventListener('pointermove', () => showCtl());
 $('bBack').onclick = () => { seekBy(-10); showCtl(); };
 $('bFwd').onclick = () => { seekBy(10); showCtl(); };
