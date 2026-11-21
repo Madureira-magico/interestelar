@@ -308,7 +308,7 @@ function fallback() { GLok = false; cv.style.display = 'none'; }
 let started = false;
 async function start() {
   if (started) return; started = true;
-  if (PPT_MODE) document.title = 'Interestelar';   // new showing: clear the "finished" signal for PowerPoint
+  if (PPT_MODE) { clearTimeout(pptTimer); document.title = 'Interestelar'; }   // new showing: clear the "finished" signal for PowerPoint
   document.body.classList.add('playing');
   cover.style.display = 'none';
   v.currentTime = 0;
@@ -323,11 +323,18 @@ function backToCover() {
   setTime(parseTime(cfg.fix), 'fixada');   // next showing starts again from the fixed time
 }
 cover.addEventListener('click', e => { if (e.clientX < 80 && e.clientY < 80) return; start(); });
-v.addEventListener('ended', () => setTimeout(() => {
-  backToCover();
-  // Avisar ao PowerPoint que o filme terminou, sem afetar o site normal.
-  if (PPT_MODE) document.title = 'INTERESTELAR_PPT_FINALIZADO';
-}, 600));
+// PowerPoint mode: the title says "finished" for 3 s (the macro goes back to the slide), then returns to normal
+let pptTimer = 0;
+function signalPPT() {
+  if (!PPT_MODE) return;
+  clearTimeout(pptTimer);
+  document.title = 'INTERESTELAR_PPT_FINALIZADO';
+  pptTimer = setTimeout(() => { document.title = 'Interestelar'; }, 3000);
+}
+function finishNow() {   // X button / End key in PowerPoint mode: stop and hand back to PowerPoint
+  hideCtl(); backToCover(); signalPPT();
+}
+v.addEventListener('ended', () => setTimeout(() => { backToCover(); signalPPT(); }, 600));
 
 // ====================== Ably ======================
 let ably = null, chan = null, ablyState = 'desligado';
@@ -383,6 +390,7 @@ document.addEventListener('keydown', e => {
   else if (started && cfg.controles && e.key === 'ArrowRight') { seekBy(10); showCtl(); }
   else if (started && cfg.controles && e.key === 'ArrowLeft') { seekBy(-10); showCtl(); }
   else if (e.key === 'Home' && started) backToCover();
+  else if (e.key === 'End' && PPT_MODE) finishNow();
 });
 let taps = [];
 document.addEventListener('pointerdown', e => {
@@ -423,7 +431,7 @@ $('bFull').onclick = () => {
   try { if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen({ navigationUI: 'hide' }); } catch (e) {}
   showCtl();
 };
-$('bHome').onclick = () => { hideCtl(); backToCover(); };
+$('bHome').onclick = () => { if (PPT_MODE) finishNow(); else { hideCtl(); backToCover(); } };
 const bar = $('bar');
 function barSeek(e) { const r = bar.getBoundingClientRect(); seekTo((e.clientX - r.left) / r.width * (v.duration || 0)); }
 bar.addEventListener('pointerdown', e => { dragging = true; bar.setPointerCapture(e.pointerId); barSeek(e); showCtl(); });
