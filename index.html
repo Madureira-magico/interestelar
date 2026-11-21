@@ -94,6 +94,8 @@ const hasAbly = () => !!(window.AblyPubSub || window.Ably);
 // ====================== settings ======================
 const LS = 'interestelar_player_v1';
 const Q = new URLSearchParams(location.search);
+// Modo PowerPoint, ativo somente ao abrir com ?ppt=1
+const PPT_MODE = Q.get('ppt') === '1';
 const cfg = Object.assign({ controles: true, preencher: false, key: '-WkBxA.FUModg:DGe6U1wyeEuOu4_3iuubjnS144Ol3ojOlTb9mmqgmv0', ch: 'relogio:interestelar', fix: '8:20', ensaio: false }, JSON.parse(localStorage.getItem(LS) || '{}'));
 if (!cfg.ch || cfg.ch === 'interestelar') cfg.ch = 'relogio:interestelar';   // the Ably key only allows relogio:* channels
 if (!cfg.key) cfg.key = '-WkBxA.FUModg:DGe6U1wyeEuOu4_3iuubjnS144Ol3ojOlTb9mmqgmv0';
@@ -317,7 +319,11 @@ function backToCover() {
   setTime(parseTime(cfg.fix), 'fixada');   // next showing starts again from the fixed time
 }
 cover.addEventListener('click', e => { if (e.clientX < 80 && e.clientY < 80) return; start(); });
-v.addEventListener('ended', () => setTimeout(backToCover, 600));
+v.addEventListener('ended', () => setTimeout(() => {
+  backToCover();
+  // Avisar ao PowerPoint que o filme terminou, sem afetar o site normal.
+  if (PPT_MODE) document.title = 'INTERESTELAR_PPT_FINALIZADO';
+}, 600));
 
 // ====================== Ably ======================
 let ably = null, chan = null, ablyState = 'desligado';
