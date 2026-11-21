@@ -7,7 +7,7 @@
 <style>
   html, body { margin: 0; height: 100%; background: #000; overflow: hidden; -webkit-user-select: none; user-select: none; cursor: default; }
   #cover, #stage { position: fixed; inset: 0; }
-  #cover { z-index: 3; cursor: pointer; }
+  #cover { z-index: 3; cursor: pointer; background: #000; }
   #cover img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
   #stage { z-index: 1; background: #000; }
   #stage video, #stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
@@ -61,7 +61,7 @@
     <button id="bHome" title="Voltar para a capa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
   </div>
 </div>
-<div id="cover"><img src="assets/capa.jpg?v=4" alt=""></div>
+<div id="cover"></div>
 <div id="dot"></div>
 <div id="info"></div>
 
@@ -312,7 +312,10 @@ async function start() {
   document.body.classList.add('playing');
   cover.style.display = 'none';
   v.currentTime = 0;
-  try { await v.play(); } catch (e) { log('play ' + e); }
+  try { await v.play(); }
+  catch (e) {   // the browser blocked autoplay: stay on the black screen, a click starts it
+    log('play ' + e); started = false; document.body.classList.remove('playing'); cover.style.display = '';
+  }
 }
 function backToCover() {
   started = false; document.body.classList.remove('playing'); cover.style.display = '';
@@ -439,6 +442,7 @@ applyView();
   setTime(parseTime(cfg.fix), 'fixada');
   if ('requestVideoFrameCallback' in v) v.requestVideoFrameCallback(onFrame); else fallback();
   connectAbly(); updInfo();
+  start();   // the trailer starts by itself (the cover image is shown by PowerPoint)
   window.__player = { S, setTime, parseTime, GL, get META() { return META; }, get gl() { return gl; }, v }; // for tests
 })();
 </script>
