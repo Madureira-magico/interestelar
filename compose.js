@@ -12,9 +12,10 @@ const Compose = (() => {
     const r = await fetch(src); if (!r.ok) throw new Error(src);
     return createImageBitmap(await r.blob(), { premultiplyAlpha: 'none', colorSpaceConversion: 'none' });
   }
-  async function init(meta, dir) {
+  async function init(meta, dir, q) {
+    q = q || '';
     M = meta; [X0, Y0] = meta.bbox; W = meta.bbox[2] - X0; H = meta.bbox[3] - Y0;
-    const [b, gm, ga, h1, h2, h3] = await Promise.all(['base', 'gmul', 'gadd', 'hand_hour', 'hand_min', 'hand_sec'].map(n => loadImg(dir + n + '.png')));
+    const [b, gm, ga, h1, h2, h3] = await Promise.all(['base', 'gmul', 'gadd', 'hand_hour', 'hand_min', 'hand_sec'].map(n => loadImg(dir + n + '.png' + q)));
     base = imgData(b).data; gmul = imgData(gm).data; gadd = imgData(ga).data;
     for (const [k, im] of [['hour', h1], ['min', h2], ['sec', h3]]) { const d = imgData(im); spr[k] = { w: d.width, h: d.height, d: d.data }; }
     ready = true;
@@ -230,7 +231,7 @@ if (typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScop
     const d = e.data;
     if (d.type === 'init') {
       try {
-        await Compose.init(d.meta, d.dir);
+        await Compose.init(d.meta, d.dir, d.q);
         const t0 = performance.now(), s0 = Compose.compose(null, 0, 0);
         self.postMessage({ type: 'ready', s0, size: Compose.size, ms: performance.now() - t0 }, [s0.buffer]);
         pump();

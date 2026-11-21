@@ -45,7 +45,7 @@
 </head>
 <body>
 <div id="stage">
-  <video id="v" src="trailer.mp4" preload="auto" playsinline webkit-playsinline></video>
+  <video id="v" preload="auto" playsinline webkit-playsinline></video>
   <canvas id="c" width="1920" height="804"></canvas>
 </div>
 <div id="ctl">
@@ -61,7 +61,7 @@
     <button id="bHome" title="Voltar para a capa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
   </div>
 </div>
-<div id="cover"><img src="assets/capa.jpg" alt=""></div>
+<div id="cover"><img src="assets/capa.jpg?v=3" alt=""></div>
 <div id="dot"></div>
 <div id="info"></div>
 
@@ -87,6 +87,8 @@
 <script src="ably.min.js"></script>
 <script>
 'use strict';
+// version of all player files: bump on every release so the browser never mixes old and new files
+const VER = '3';
 const makeAbly = o => window.AblyPubSub ? AblyPubSub.createClient(o) : new Ably.Realtime(o);
 const hasAbly = () => !!(window.AblyPubSub || window.Ably);
 // ====================== settings ======================
@@ -119,6 +121,7 @@ const fmt = t => t ? t.h + ':' + String(t.m).padStart(2, '0') : '—';
 
 // ====================== elements / state ======================
 const v = document.getElementById('v'), cv = document.getElementById('c'), cover = document.getElementById('cover');
+v.src = 'trailer.mp4?v=' + VER;
 const info = document.getElementById('info'), dot = document.getElementById('dot');
 let META = null, CLOSE0 = 0, NCLOSE = 0, FPS = 23.976, LOCK = 0;
 const S = { // time state
@@ -137,7 +140,7 @@ function updInfo(extra) {
 }
 
 // ====================== compose worker ======================
-const worker = new Worker('compose.js');
+const worker = new Worker('compose.js?v=' + VER);
 let jobId = 0;
 worker.onmessage = e => {
   const d = e.data;
@@ -425,10 +428,10 @@ applyView();
 
 // ====================== boot ======================
 (async () => {
-  META = await (await fetch('assets/meta.json')).json();
+  META = await (await fetch('assets/meta.json?v=' + VER, { cache: 'no-cache' })).json();
   CLOSE0 = META.close.first; NCLOSE = META.close.count; FPS = META.close.fps; LOCK = META.lockFrames;
   try { GL.init(); GLok = true; } catch (e) { log('WebGL indisponível: ' + e.message); fallback(); }
-  worker.postMessage({ type: 'init', meta: META, dir: new URL('assets/', location.href).href });
+  worker.postMessage({ type: 'init', meta: META, dir: new URL('assets/', location.href).href, q: '?v=' + VER });
   setTime(parseTime(cfg.fix), 'fixada');
   if ('requestVideoFrameCallback' in v) v.requestVideoFrameCallback(onFrame); else fallback();
   connectAbly(); updInfo();
